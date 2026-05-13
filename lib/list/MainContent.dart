@@ -1,20 +1,20 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MainContent extends StatelessWidget{
 
   final VoidCallback onPressed;
-  const MainContent(this.onPressed, {Key? key}) : super(key: key);
+  const MainContent(this.onPressed, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
+        SizedBox(
           height: 20,
           child : Align(
             alignment: Alignment.centerLeft,
-            child: Padding(
+                child: Padding(
+                padding: EdgeInsets.all(2),
                 child: FittedBox(
                   fit: BoxFit.contain,
                   child: Text("タイトル",
@@ -25,7 +25,6 @@ class MainContent extends StatelessWidget{
                     ),
                   ),
                 ),
-                padding: EdgeInsets.all(2)
             ),
           )
         ),
@@ -39,26 +38,27 @@ class MainContent extends StatelessWidget{
           height: 20,
           padding: EdgeInsets.symmetric( horizontal: 5, vertical: 2),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton(
                   onPressed: () => { onPressed() },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
+                    foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        side: BorderSide(color: Colors.red)
+                      )
+                    )
+                  ),
                   child: Padding(
+                      padding: EdgeInsets.all(2),
                       child: FittedBox(
                         fit: BoxFit.contain,
                         child: Text("詳細を見る"),
                       ),
-                    padding: EdgeInsets.all(2)
                   ),
-                  style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-                      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5.0),
-                              side: BorderSide(color: Colors.red)
-                          )
-                      )
-                  )
               ),
               Padding(
                 padding: EdgeInsets.only(top: 5),
@@ -74,7 +74,6 @@ class MainContent extends StatelessWidget{
                 )
               )
             ],
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
           ),
         )
       ],

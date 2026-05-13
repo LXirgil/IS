@@ -164,22 +164,22 @@ class _ListPageState extends State<ListPage> {
   }
 
   // テキスト入力用ダイアログを開く
-  void _openTextInput() {
+  Future<void> _openTextInput() async {
     // フルスクリーンの作成ページへ遷移して結果のMapを受け取る
-    Navigator.of(context).push(MaterialPageRoute(builder: (c) => const ComposeIdeaPage())).then((res) async {
-      if (res is Map<String, dynamic>) {
-        final title = res['title'] ?? '';
-        final body = res['body'] ?? '';
-        final type = res['type'] ?? 'テキスト';
-        final tags = List<String>.from(res['tags'] ?? []);
-        final imagePath = res['imagePath'];
-        final audioPath = res['audioPath'];
-        setState(() {
-          _ideas.insert(0, Idea(title: title, date: _formatNow(), type: type, tags: tags, body: body, imagePath: imagePath, audioPath: audioPath));
-        });
-        await _saveIdeas();
-      }
-    });
+    final res = await Navigator.of(context).push(MaterialPageRoute(builder: (c) => const ComposeIdeaPage()));
+    if (res is Map<String, dynamic>) {
+      final title = res['title'] ?? '';
+      final body = res['body'] ?? '';
+      final type = res['type'] ?? 'テキスト';
+      final tags = List<String>.from(res['tags'] ?? []);
+      final imagePath = res['imagePath'];
+      final audioPath = res['audioPath'];
+      if (!mounted) return;
+      setState(() {
+        _ideas.insert(0, Idea(title: title, date: _formatNow(), type: type, tags: tags, body: body, imagePath: imagePath, audioPath: audioPath));
+      });
+      await _saveIdeas();
+    }
   }
 
   // 画像入力（プレースホルダ）：今はタイトルだけ受け取るダイアログ
@@ -190,9 +190,10 @@ class _ListPageState extends State<ListPage> {
       if (result == null || result.files.isEmpty) return;
       final path = result.files.first.path;
       if (path == null) return;
+      if (!mounted) return;
 
-      final TextEditingController _titleController = TextEditingController();
-      final TextEditingController _bodyController = TextEditingController();
+      final TextEditingController titleController = TextEditingController();
+      final TextEditingController bodyController = TextEditingController();
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -203,12 +204,12 @@ class _ListPageState extends State<ListPage> {
               SizedBox(height: 120, child: Image.file(File(path), fit: BoxFit.contain)),
               const SizedBox(height: 8),
               TextField(
-                controller: _titleController,
+                controller: titleController,
                 decoration: const InputDecoration(hintText: 'タイトル（省略可）'),
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: _bodyController,
+                controller: bodyController,
                 maxLines: 4,
                 decoration: const InputDecoration(hintText: '画像の説明やメモ（省略可）'),
               ),
@@ -218,8 +219,9 @@ class _ListPageState extends State<ListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('キャンセル')),
             ElevatedButton(
               onPressed: () async {
-                final titleText = _titleController.text.trim();
-                final bodyText = _bodyController.text.trim();
+                final nav = Navigator.of(context);
+                final titleText = titleController.text.trim();
+                final bodyText = bodyController.text.trim();
                 final tags = await AiService.instance.extractTags('$titleText\n$bodyText');
                 // copy image into app documents to persist
                 final dir = await getApplicationDocumentsDirectory();
@@ -233,7 +235,7 @@ class _ListPageState extends State<ListPage> {
                   _ideas.insert(0, Idea(title: titleText.isEmpty ? '画像アイデア' : titleText, date: _formatNow(), type: '画像', tags: tags, body: bodyText, imagePath: savedPath));
                 });
                 await _saveIdeas();
-                Navigator.of(context).pop();
+                nav.pop();
               },
               child: const Text('保存'),
             ),
@@ -252,8 +254,8 @@ class _ListPageState extends State<ListPage> {
       builder: (context) {
         bool isRecording = false;
         String? recordedPath;
-        final TextEditingController _titleController = TextEditingController();
-        final TextEditingController _bodyController = TextEditingController();
+        final TextEditingController titleController = TextEditingController();
+        final TextEditingController bodyController = TextEditingController();
 
         return StatefulBuilder(builder: (context, setModalState) {
           Future<void> startRecording() async {
@@ -303,27 +305,29 @@ class _ListPageState extends State<ListPage> {
                       const SizedBox(height: 8),
                       Text(isRecording ? '録音中... タップで停止' : (recordedPath == null ? '未録音' : '録音完了')),
                       const SizedBox(height: 12),
-                      TextField(controller: _titleController, decoration: const InputDecoration(hintText: 'タイトル（省略可）')),
+                      TextField(controller: titleController, decoration: const InputDecoration(hintText: 'タイトル（省略可）')),
                       const SizedBox(height: 8),
-                      TextField(controller: _bodyController, maxLines: 3, decoration: const InputDecoration(hintText: 'メモ（省略可）')),
+                      TextField(controller: bodyController, maxLines: 3, decoration: const InputDecoration(hintText: 'メモ（省略可）')),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(onPressed: () async {
+                            final nav = Navigator.of(context);
                             // キャンセル: 録音停止 + 一時ファイル削除
                             if (isRecording) await stopRecording();
                             if (recordedPath != null) {
                               try { await File(recordedPath!).delete(); } catch (_) {}
                             }
-                            Navigator.of(context).pop();
+                            nav.pop();
                           }, child: const Text('キャンセル')),
                           const SizedBox(width: 8),
                           ElevatedButton(onPressed: () async {
+                            final nav = Navigator.of(context);
                             if (isRecording) await stopRecording();
                             if (recordedPath == null) return; // 録音がない場合保存しない
-                            final titleText = _titleController.text.trim();
-                            final bodyText = _bodyController.text.trim();
+                            final titleText = titleController.text.trim();
+                            final bodyText = bodyController.text.trim();
                             final tags = await AiService.instance.extractTags('$titleText\n$bodyText');
                             // move audio to documents for persistence
                             String? finalPath;
@@ -339,7 +343,7 @@ class _ListPageState extends State<ListPage> {
                               _ideas.insert(0, Idea(title: titleText.isEmpty ? '音声アイデア' : titleText, date: _formatNow(), type: '音声', tags: tags, body: bodyText, audioPath: finalPath));
                             });
                             await _saveIdeas();
-                            Navigator.of(context).pop();
+                            nav.pop();
                           }, child: const Text('保存')),
                         ],
                       ),
@@ -391,12 +395,14 @@ class _ListPageState extends State<ListPage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () async {
+              final nav = Navigator.of(context);
               final Idea? selected = await showSearch<Idea?>(
                 context: context,
                 delegate: IdeaSearchDelegate(_ideas),
               );
+              if (!mounted) return;
               if (selected != null) {
-                Navigator.push(context, MaterialPageRoute(builder: (c) => DetailPage(idea: selected)));
+                nav.push(MaterialPageRoute(builder: (c) => DetailPage(idea: selected)));
               }
             },
           ), // F-05 検索バーのUI [cite: 17]
@@ -537,6 +543,7 @@ class DetailPage extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.delete),
           onPressed: () async {
+            final nav = Navigator.of(context);
             final ok = await showDialog<bool>(
               context: context,
               builder: (c) => AlertDialog(
@@ -552,7 +559,7 @@ class DetailPage extends StatelessWidget {
               try { if (idea.imagePath != null) await File(idea.imagePath!).delete(); } catch (_) {}
               try { if (idea.audioPath != null) await File(idea.audioPath!).delete(); } catch (_) {}
               if (onDelete != null) onDelete!();
-              Navigator.of(context).pop();
+              nav.pop();
             }
           },
         ),

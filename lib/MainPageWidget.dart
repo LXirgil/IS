@@ -3,7 +3,7 @@ import '/detail/CouponDetail.dart';
 import '/list/CouponListView.dart';
 
 class MainPageWidget extends StatefulWidget{
-
+  const MainPageWidget({super.key});
   @override
   State<StatefulWidget> createState() {
     return _MainPageWidget();

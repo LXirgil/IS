@@ -5,7 +5,7 @@ import '../models/note.dart';
 import '../services/ai_service.dart';
 
 class ComposePage extends StatefulWidget {
-  const ComposePage({Key? key}) : super(key: key);
+  const ComposePage({super.key});
 
   @override
   State<ComposePage> createState() => _ComposePageState();
@@ -43,7 +43,7 @@ class _ComposePageState extends State<ComposePage> {
     final summary = await AiService.instance.summarize(input);
     final tags = await Store.instance.generateTags(input);
     setState(() {
-      if (summary.isNotEmpty) _bodyCtrl.text = summary + '\n\n' + _bodyCtrl.text;
+      if (summary.isNotEmpty) _bodyCtrl.text = '$summary\n\n${_bodyCtrl.text}';
       _suggestedTags = tags;
       _isAiRunning = false;
     });

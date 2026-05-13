@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'ThirdPage.dart';
 
 class SecondPage extends StatefulWidget {
+  const SecondPage({super.key});
   @override
   State<SecondPage> createState() => _SecondPageState();
 }
@@ -37,7 +38,9 @@ class _SecondPageState extends State<SecondPage> {
       for (final e in arr) {
         final m = Map<String, dynamic>.from(e);
         final tlist = List<String>.from(m['tags'] ?? []);
-        for (final t in tlist) st.add(t);
+        for (final t in tlist) {
+          st.add(t);
+        }
       }
       setState(() => tags = st.toList()..sort());
     } catch (_) {}
@@ -45,12 +48,16 @@ class _SecondPageState extends State<SecondPage> {
 
   Future<void> _exportTags() async {
     try {
+      final messenger = ScaffoldMessenger.of(context);
       final dir = await getApplicationDocumentsDirectory();
       final out = File('${dir.path}/tags_${DateTime.now().millisecondsSinceEpoch}.txt');
       await out.writeAsString(tags.join('\n'));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('タグを ${out.path} にエクスポートしました')));
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('タグを ${out.path} にエクスポートしました')));
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('エクスポートに失敗しました')));
+      final messenger = ScaffoldMessenger.of(context);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('エクスポートに失敗しました')));
     }
   }
 

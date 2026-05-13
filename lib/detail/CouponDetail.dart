@@ -1,10 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CouponDetail extends StatelessWidget {
 
   final VoidCallback closeAction;
-  const CouponDetail(this.closeAction, {Key? key}) : super(key: key);
+  const CouponDetail(this.closeAction, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,30 +58,24 @@ class CouponDetail extends StatelessWidget {
             Spacer(
               flex: 1,
             ),
-            Expanded(
+                Expanded(
                 flex: 2,
                 child: ElevatedButton(
                     onPressed: () => {closeAction()},
-                    child: Padding(
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: Text("閉じる"),
-                        ),
-                        padding: EdgeInsets.all(2)),
                     style: ButtonStyle(
-                        backgroundColor:
-                        MaterialStateProperty.all<Color>(
-                            Colors.red),
-                        foregroundColor:
-                        MaterialStateProperty.all<Color>(
-                            Colors.white),
-                        shape: MaterialStateProperty.all<
-                            RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(5.0),
-                                side: BorderSide(
-                                    color: Colors.red)))))),
+                      backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
+                      foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          side: BorderSide(color: Colors.red)))),
+                    child: Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: FittedBox(
+                                    fit: BoxFit.contain,
+                                    child: Text("閉じる"),
+                                  ),
+                                ),)),
             Spacer(
               flex: 1,
             )

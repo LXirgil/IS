@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/compose_idea_page.dart';
 
 class FirstPage extends StatelessWidget {
-  FirstPage({Key? key}) : super(key: key);
+  FirstPage({super.key});
 
   final List<Map<String, String>> templates = [
     {'title': 'UXアイデア', 'body': '誰のためのUXか？\n課題は？\n提案内容：\n期待される効果：'},

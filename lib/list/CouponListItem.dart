@@ -4,7 +4,7 @@ import 'package:sample/list/MainContent.dart';
 class CouponListItem extends StatelessWidget {
 
   final VoidCallback onPressed;
-  const CouponListItem(this.onPressed, {Key? key}) : super(key: key);
+  const CouponListItem(this.onPressed, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,18 +23,18 @@ class CouponListItem extends StatelessWidget {
             width: 100,
             height: 100,
             margin: EdgeInsets.only(right: 10),
-            child: imageWidget(),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(1),
                 color: Colors.white,
                 boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 1)]),
+            child: imageWidget(),
           ),
           Expanded(
-              child: Container(
-                  height: 100,
-                  child: MainContent(onPressed)
-              )
+          child: SizedBox(
+            height: 100,
+            child: MainContent(onPressed)
           )
+        )
         ]));
   }
 
@@ -42,8 +42,8 @@ class CouponListItem extends StatelessWidget {
   Widget imageWidget(){
     return ClipRect(
         child: FittedBox(
-          child: Image.asset('assets/images/c_img.jpg'),
           fit: BoxFit.cover,
+          child: Image.asset('assets/images/c_img.jpg'),
         )
     );
   }

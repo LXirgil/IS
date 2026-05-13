@@ -5,7 +5,7 @@ import 'compose_page.dart';
 import 'detail_page.dart';
 
 class ListPage extends StatefulWidget {
-  const ListPage({Key? key}) : super(key: key);
+  const ListPage({super.key});
 
   @override
   State<ListPage> createState() => _ListPageState();
@@ -21,9 +21,11 @@ class _ListPageState extends State<ListPage> {
   }
 
   Future<void> _openCompose() async {
-    final result = await Navigator.of(context).push<bool>(
+    final nav = Navigator.of(context);
+    final result = await nav.push<bool>(
       MaterialPageRoute(builder: (_) => const ComposePage()),
     );
+    if (!mounted) return;
     if (result == true) {
       setState(() {
         notes = Store.instance.getNotes();
@@ -54,7 +56,9 @@ class _ListPageState extends State<ListPage> {
                       ],
                     ),
                     onTap: () async {
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => DetailPage(note: n)));
+                      final nav = Navigator.of(context);
+                      await nav.push(MaterialPageRoute(builder: (_) => DetailPage(note: n)));
+                      if (!mounted) return;
                       setState(() {
                         notes = Store.instance.getNotes();
                       });

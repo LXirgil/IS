@@ -3,7 +3,7 @@ import '../models/note.dart';
 
 class DetailPage extends StatelessWidget {
   final Note note;
-  const DetailPage({Key? key, required this.note}) : super(key: key);
+  const DetailPage({super.key, required this.note});
 
   @override
   Widget build(BuildContext context) {

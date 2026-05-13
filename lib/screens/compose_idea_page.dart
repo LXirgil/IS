@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../services/ai_service.dart';
 
 class ComposeIdeaPage extends StatefulWidget {
   final String? initialTitle;
   final String? initialBody;
 
-  const ComposeIdeaPage({Key? key, this.initialTitle, this.initialBody}) : super(key: key);
+  const ComposeIdeaPage({super.key, this.initialTitle, this.initialBody});
 
   @override
   State<ComposeIdeaPage> createState() => _ComposeIdeaPageState();
@@ -33,15 +34,19 @@ class _ComposeIdeaPageState extends State<ComposeIdeaPage> {
     final title = titleCtrl.text.trim();
     final body = bodyCtrl.text.trim();
     if (title.isEmpty && body.isEmpty) return;
-    final res = {
-      'title': title.isEmpty ? (body.length > 20 ? '${body.substring(0,20)}…' : body) : title,
-      'body': body,
-      'type': 'テキスト',
-      'tags': <String>[],
-      'imagePath': null,
-      'audioPath': null,
-    };
-    Navigator.of(context).pop(res);
+    // 自動タグ抽出を行ってから結果を返す
+    AiService.instance.extractTags('$title\n$body').then((tags) {
+      final res = {
+        'title': title.isEmpty ? (body.length > 20 ? '${body.substring(0,20)}…' : body) : title,
+        'body': body,
+        'type': 'テキスト',
+        'tags': tags,
+        'imagePath': null,
+        'audioPath': null,
+      };
+      if (!mounted) return;
+      Navigator.of(context).pop(res);
+    });
   }
 
   @override

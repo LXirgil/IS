@@ -4,7 +4,7 @@ import '/list/CouponListItem.dart';
 class CouponListView extends StatelessWidget{
 
   final VoidCallback onPressed;
-  CouponListView(this.onPressed, {Key? key}) : super(key: key);
+  CouponListView(this.onPressed, {super.key});
 
   @override
   Widget build(BuildContext context) {

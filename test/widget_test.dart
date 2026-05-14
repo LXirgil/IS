@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sample/main.dart';
+import 'package:ai_bowling_master/main.dart';
 
 void main() {
   testWidgets('App loads and shows list page', (WidgetTester tester) async {

@@ -1,16 +1,17 @@
-# sample
+# AI Bowling Master (仮)
 
-A new Flutter project.
+ボウリングのスコア分析とAIコーチングを行うFlutterアプリのリポジトリです。
 
-## Getting Started
+目的:
+- 投球データの記録・可視化（平均、ストライク率、スペア率、ピン別残り傾向）
+- 苦手ピンの自動特定と攻略ナビ
+- Gemini API を利用したAIコーチング（テキスト・図解・動画解析）
 
-This project is a starting point for a Flutter application.
+開発メモ:
+- データモデル: `lib/models/bowling.dart`
+- チャート表示には `fl_chart` を利用予定
+- 永続化: Hive / sqflite 検討中
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+次のステップ:
+- 不要ビルド成果物の削除とワークスペース整理
+- 企画書とプレゼン資料を `docs/` に追加

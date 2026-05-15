@@ -118,7 +118,9 @@ class BowlingStats {
   // ピン別残り回数を集計（どのピンが残りやすいか）
   static Map<int, int> pinLeaveCounts(List<RoundData> rounds) {
     final counts = <int, int>{};
-    for (var p = 1; p <= 10; p++) counts[p] = 0;
+    for (var p = 1; p <= 10; p++) {
+      counts[p] = 0;
+    }
     for (final r in rounds) {
       for (final f in r.frames) {
         for (final t in f.throws) {

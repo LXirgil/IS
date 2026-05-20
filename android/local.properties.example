@@ -1,0 +1,3 @@
+# このファイルを android/local.properties にコピーし、APIキーを設定してください
+# Google Cloud Console で「Maps SDK for Android」を有効化したキーを使用
+GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY

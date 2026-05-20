@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ai_bowling_master/main.dart';
 
 void main() {
-  testWidgets('App loads and shows list page', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('App loads with navigation shell', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const AIBowlingMasterApp());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // Verify that the app title is shown
-    expect(find.text('AI ボウリングマスター'), findsOneWidget);
-
-    // Verify that the FAB is present
-    expect(find.byIcon(Icons.add), findsOneWidget);
-
-    // Verify that sample rounds are displayed (we seeded rounds)
-    expect(find.textContaining('ラウンド sample-1'), findsOneWidget);
+    expect(find.text('ホーム'), findsWidgets);
+    expect(find.text('ゲーム'), findsWidgets);
+    expect(find.textContaining('sample'), findsNothing);
   });
 }

@@ -38,6 +38,13 @@ class MoreTab extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.map),
+            title: const Text('全体地図（OpenStreetMap）'),
+            subtitle: const Text('マーカーの追加・保存・削除ができます'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed('/map'),
+          ),
+          ListTile(
             leading: const Icon(Icons.place_outlined),
             title: const Text('ボウリング場リスト'),
             subtitle: Text('${repo.alleys.length} 件登録'),
@@ -63,7 +70,7 @@ class MoreTab extends StatelessWidget {
             leading: const Icon(Icons.cloud_upload_outlined),
             title: const Text('バックアップを共有'),
             subtitle: const Text('JSON形式でエクスポート'),
-            onTap: () => ShareService.instance.shareBackupJson(),
+            onTap: () => ShareService.instance.shareBackupFile(),
           ),
           ListTile(
             leading: const Icon(Icons.file_download_outlined),
@@ -73,7 +80,7 @@ class MoreTab extends StatelessWidget {
               final picked = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json', 'txt']);
               if (picked?.files.single.path == null) return;
               final raw = await File(picked!.files.single.path!).readAsString();
-              if (raw == null) return;
+              if (!context.mounted) return;
               final merge = await showDialog<bool>(
                 context: context,
                 builder: (c) => AlertDialog(

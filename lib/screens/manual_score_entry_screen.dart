@@ -71,6 +71,9 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
     _round.alleyId = _alleyId;
     _round.note = _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
     _round.source = 'manual';
+    // persist to repository
+    BowlingRepository.instance.upsertRound(_round);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('スコアを保存しました')));
     Navigator.of(context).pop(_round);
   }
 
@@ -92,7 +95,7 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String?>(
-                  value: _ballId,
+                  initialValue: _ballId,
                   decoration: const InputDecoration(labelText: 'ボール', border: OutlineInputBorder()),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('未選択')),
@@ -104,7 +107,7 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String?>(
-                  value: _alleyId,
+                  initialValue: _alleyId,
                   decoration: const InputDecoration(labelText: 'ボウリング場', border: OutlineInputBorder()),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('未選択')),
@@ -152,7 +155,11 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
               OutlinedButton.icon(onPressed: _controller.rolls.isEmpty ? null : _undo, icon: const Icon(Icons.undo), label: const Text('戻す')),
               const Spacer(),
               if (_controller.isComplete)
-                Chip(label: const Text('ゲーム完了'), backgroundColor: scheme.primaryContainer),
+                FilledButton(
+                  onPressed: _save,
+                  style: FilledButton.styleFrom(backgroundColor: scheme.primaryContainer),
+                  child: const Text('ゲーム完了'),
+                ),
             ],
           ),
         ],

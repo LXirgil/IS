@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
 import '../data/bowling_repository.dart';
 import '../models/bowling_meta.dart';
 import '../services/location_service.dart';
 import '../services/nearby_alleys_service.dart';
-import '../utils/google_maps_support.dart';
 import '../utils/map_marker_factory.dart';
 
-/// 近くのボウリング場を Google Maps で表示
+/// 近くのボウリング場を地図で表示（flutter_map）
 class AlleysMapScreen extends StatefulWidget {
   const AlleysMapScreen({super.key, required this.onChanged});
 
@@ -20,7 +19,7 @@ class AlleysMapScreen extends StatefulWidget {
 }
 
 class _AlleysMapScreenState extends State<AlleysMapScreen> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   ll.LatLng _center = LocationService.fallbackCenter;
   ll.LatLng? _cameraCenter;
 
@@ -28,8 +27,7 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
   NearbyBowlingPlace? _selectedNearby;
   BowlingAlley? _selectedSaved;
 
-  Set<Marker> _markers = {};
-  Set<Circle> _circles = {};
+  List<Marker> _markers = [];
 
   bool _loading = true;
   String? _error;
@@ -40,14 +38,10 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
   @override
   void initState() {
     super.initState();
-    if (isGoogleMapsSupported) {
-      _init();
-    } else {
-      _loading = false;
-    }
+    // Always initialize; use flutter_map even when Google Maps unsupported.
+    _init();
   }
 
-  LatLng _toGoogle(ll.LatLng p) => LatLng(p.latitude, p.longitude);
 
   Future<void> _init() async {
     setState(() {
@@ -69,86 +63,49 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
 
     if (mounted) {
       setState(() => _loading = false);
-      _mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: _toGoogle(_center), zoom: _usedGps ? 14 : 12),
-        ),
-      );
+      _mapController.move(_center, _usedGps ? 14.0 : 12.0);
     }
   }
 
   Future<void> _buildMarkers() async {
-    if (!isGoogleMapsSupported) return;
-
-    final bowlingIcon = await MapMarkerFactory.bowlingAlley();
-    final savedIcon = await MapMarkerFactory.savedAlley();
+    final bowlingBytes = await MapMarkerFactory.bowlingAlleyBytes();
+    final savedBytes = await MapMarkerFactory.savedAlleyBytes();
     final repo = BowlingRepository.instance;
-    final markers = <Marker>{};
+    final list = <Marker>[];
 
     for (final p in _nearby) {
-      markers.add(
-        Marker(
-          markerId: MarkerId('nearby_${p.osmId}'),
-          position: LatLng(p.latitude, p.longitude),
-          icon: bowlingIcon,
-          anchor: const Offset(0.5, 1.0),
-          infoWindow: InfoWindow(
-            title: p.name,
-            snippet: [if (p.address != null) p.address, p.distanceLabel].where((s) => s != null && s.isNotEmpty).join(' · '),
-            onTap: () => setState(() {
-              _selectedNearby = p;
-              _selectedSaved = null;
-            }),
-          ),
+      list.add(Marker(
+        point: ll.LatLng(p.latitude, p.longitude),
+        width: 96,
+        height: 120,
+        child: GestureDetector(
           onTap: () => setState(() {
             _selectedNearby = p;
             _selectedSaved = null;
           }),
+          child: Image.memory(bowlingBytes, width: 64, height: 80),
         ),
-      );
+      ));
     }
 
     for (final a in repo.alleys.where((a) => a.hasLocation)) {
-      markers.add(
-        Marker(
-          markerId: MarkerId('saved_${a.id}'),
-          position: LatLng(a.latitude!, a.longitude!),
-          icon: savedIcon,
-          anchor: const Offset(0.5, 1.0),
-          infoWindow: InfoWindow(
-            title: '★ ${a.name}',
-            snippet: a.address ?? '登録済み',
-            onTap: () => setState(() {
-              _selectedSaved = a;
-              _selectedNearby = null;
-            }),
-          ),
+      list.add(Marker(
+        point: ll.LatLng(a.latitude!, a.longitude!),
+        width: 96,
+        height: 120,
+        child: GestureDetector(
           onTap: () => setState(() {
             _selectedSaved = a;
             _selectedNearby = null;
           }),
+          child: Image.memory(savedBytes, width: 64, height: 80),
         ),
-      );
-    }
-
-    final circles = <Circle>{};
-    if (_usedGps) {
-      circles.add(
-        Circle(
-          circleId: const CircleId('search_radius'),
-          center: _toGoogle(_center),
-          radius: _radiusKm * 1000.0,
-          fillColor: const Color(0xFF3949AB).withValues(alpha: 0.08),
-          strokeColor: const Color(0xFF3949AB).withValues(alpha: 0.35),
-          strokeWidth: 2,
-        ),
-      );
+      ));
     }
 
     if (mounted) {
       setState(() {
-        _markers = markers;
-        _circles = circles;
+        _markers = list;
         _markersReady = true;
       });
     }
@@ -193,9 +150,7 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
       _cameraCenter = loc;
       _usedGps = true;
     });
-    await _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(CameraPosition(target: _toGoogle(loc), zoom: 15)),
-    );
+    _mapController.move(_center, 15.0);
     await _searchNearby();
   }
 
@@ -225,21 +180,7 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!isGoogleMapsSupported) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('近くのボウリング場')),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Google Maps は Android / iOS / Web で利用できます。\n'
-              'android/local.properties に GOOGLE_MAPS_API_KEY を設定してください。',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
-    }
+    // Use flutter_map implementation regardless of Google Maps availability.
 
     final scheme = Theme.of(context).colorScheme;
 
@@ -266,27 +207,38 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
       ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _toGoogle(_center),
-              zoom: _usedGps ? 14 : 12,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _center,
+              initialZoom: _usedGps ? 14.0 : 12.0,
+              onPositionChanged: (pos, _) {
+                _cameraCenter = pos.center;
+              },
+              onTap: (_, __) => setState(() {
+                _selectedNearby = null;
+                _selectedSaved = null;
+              }),
             ),
-            onMapCreated: (c) => _mapController = c,
-            markers: _markers,
-            circles: _circles,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            compassEnabled: true,
-            mapToolbarEnabled: true,
-            zoomControlsEnabled: false,
-            buildingsEnabled: true,
-            mapType: MapType.normal,
-            padding: const EdgeInsets.only(top: 72, bottom: 100),
-            onCameraMove: (pos) => _cameraCenter = ll.LatLng(pos.target.latitude, pos.target.longitude),
-            onTap: (_) => setState(() {
-              _selectedNearby = null;
-              _selectedSaved = null;
-            }),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                subdomains: const ['a', 'b', 'c'],
+                userAgentPackageName: 'com.example.ai_bowling_master',
+              ),
+              MarkerLayer(markers: _markers),
+              if (_usedGps)
+                CircleLayer(circles: [
+                  CircleMarker(
+                    point: _center,
+                    color: const Color(0xFF3949AB).withValues(alpha: 0.08),
+                    borderColor: const Color(0xFF3949AB).withValues(alpha: 0.35),
+                    borderStrokeWidth: 2,
+                    useRadiusInMeter: true,
+                    radius: _radiusKm * 1000.0,
+                  ),
+                ]),
+            ],
           ),
           if (_loading || !_markersReady)
             const ColoredBox(
@@ -381,9 +333,7 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
                 places: _nearby.take(4).toList(),
                 onTap: (p) {
                   setState(() => _selectedNearby = p);
-                  _mapController?.animateCamera(
-                    CameraUpdate.newLatLngZoom(LatLng(p.latitude, p.longitude), 16),
-                  );
+                  _mapController.move(ll.LatLng(p.latitude, p.longitude), 16.0);
                 },
               ),
             ),
@@ -394,7 +344,7 @@ class _AlleysMapScreenState extends State<AlleysMapScreen> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 }

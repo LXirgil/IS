@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../data/bowling_repository.dart';
 import '../models/bowling.dart';
@@ -31,5 +36,25 @@ class ShareService {
   Future<void> shareBackupJson() async {
     final json = BowlingRepository.instance.exportJson();
     await Share.share(json, subject: 'ボウリングデータバックアップ');
+  }
+
+  Future<void> shareBackupFile() async {
+    final json = BowlingRepository.instance.exportJson();
+    final dir = await getApplicationDocumentsDirectory();
+    final now = DateTime.now();
+    final ts = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}_${now.hour.toString().padLeft(2,'0')}${now.minute.toString().padLeft(2,'0')}';
+    final file = File('${dir.path}/ai_bowling_backup_$ts.json');
+    await file.writeAsString(json);
+    final xfile = XFile(file.path);
+    await Share.shareXFiles([xfile], text: 'AI Bowling Master データバックアップ');
+  }
+
+  Future<void> shareRoundAsFile(RoundData round) async {
+    final json = jsonEncode(round.toJson());
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/round_${round.id}.json');
+    await file.writeAsString(json);
+    final xfile = XFile(file.path);
+    await Share.shareXFiles([xfile], text: 'ゲームデータ共有');
   }
 }

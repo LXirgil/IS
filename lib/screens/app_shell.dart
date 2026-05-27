@@ -61,4 +61,6 @@ class _AppShellState extends State<AppShell> {
       ),
     );
   }
+
+  // App-level titles are provided by each tab's AppBar now.
 }

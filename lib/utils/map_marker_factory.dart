@@ -3,37 +3,30 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-/// Google Maps 用カスタムマーカー（ボウリングピン付き）
+/// マーカー用の PNG バイト列を生成します（flutter_map の Marker の child に Image.memory で渡せます）
 class MapMarkerFactory {
   MapMarkerFactory._();
 
-  static BitmapDescriptor? _bowlingAlley;
-  static BitmapDescriptor? _savedAlley;
+  static Uint8List? _bowlingBytes;
+  static Uint8List? _savedBytes;
 
-  static Future<BitmapDescriptor> bowlingAlley() async {
-    _bowlingAlley ??= BitmapDescriptor.bytes(
-      await _renderMarker(
-        pinColor: const Color(0xFF3949AB),
-        accentColor: const Color(0xFFFF7043),
-        showStar: false,
-      ),
-      width: 96,
+  static Future<Uint8List> bowlingAlleyBytes() async {
+    _bowlingBytes ??= await _renderMarker(
+      pinColor: const Color(0xFF3949AB),
+      accentColor: const Color(0xFFFF7043),
+      showStar: false,
     );
-    return _bowlingAlley!;
+    return _bowlingBytes!;
   }
 
-  static Future<BitmapDescriptor> savedAlley() async {
-    _savedAlley ??= BitmapDescriptor.bytes(
-      await _renderMarker(
-        pinColor: const Color(0xFFF57C00),
-        accentColor: const Color(0xFFFFD54F),
-        showStar: true,
-      ),
-      width: 96,
+  static Future<Uint8List> savedAlleyBytes() async {
+    _savedBytes ??= await _renderMarker(
+      pinColor: const Color(0xFFF57C00),
+      accentColor: const Color(0xFFFFD54F),
+      showStar: true,
     );
-    return _savedAlley!;
+    return _savedBytes!;
   }
 
   static Future<Uint8List> _renderMarker({

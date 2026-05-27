@@ -79,7 +79,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
           ),
           const SizedBox(height: 20),
           DropdownButtonFormField<String?>(
-            value: _ballId,
+            initialValue: _ballId,
             decoration: const InputDecoration(labelText: 'ボール', border: OutlineInputBorder()),
             items: [
               const DropdownMenuItem(value: null, child: Text('すべて')),
@@ -89,7 +89,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String?>(
-            value: _alleyId,
+            initialValue: _alleyId,
             decoration: const InputDecoration(labelText: 'ボウリング場', border: OutlineInputBorder()),
             items: [
               const DropdownMenuItem(value: null, child: Text('すべて')),

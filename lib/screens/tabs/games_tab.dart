@@ -6,6 +6,7 @@ import '../../models/bowling.dart';
 import '../game_detail_screen.dart';
 import '../manual_score_entry_screen.dart';
 import '../score_sheet_import_screen.dart';
+import '../../services/share_service.dart';
 
 class GamesTab extends StatelessWidget {
   const GamesTab({super.key, required this.onRefresh});
@@ -88,7 +89,19 @@ class GamesTab extends StatelessWidget {
                           r.source == 'scan' ? '写真' : '手入力',
                         ].join(' · '),
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'このゲームをエクスポート',
+                            icon: const Icon(Icons.share_outlined),
+                            onPressed: () async {
+                              await ShareService.instance.shareRoundAsFile(r);
+                            },
+                          ),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
                     ),
                   );
                 },

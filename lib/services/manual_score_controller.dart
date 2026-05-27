@@ -40,12 +40,10 @@ class ManualScoreController {
   }
 
   int _rollsNeededForComplete() {
-    var needed = 21; // max rolls
-    var consumed = 0;
+    // max rolls: 21 (theoretical), but calculation below doesn't need these variables
     var frame = 1;
     var i = 0;
     while (frame <= 10 && i < rolls.length) {
-      consumed++;
       if (frame < 10) {
         if (rolls[i] == 10) {
           frame++;
@@ -99,7 +97,6 @@ class ManualScoreController {
       } else {
         if (i >= rolls.length) return 10;
         if (i == rolls.length - 1) {
-          final prev = rolls[i];
           if (rolls.length == 1) return 10;
           final a = rolls[i - 1];
           if (rolls.length == 2) {

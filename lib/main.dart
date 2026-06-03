@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'services/cloud_sync_service.dart';
 import 'services/auth_service.dart';
 
@@ -12,12 +11,23 @@ import 'services/auto_backup.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  var firebaseAvailable = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseAvailable = true;
+  } catch (e, st) {
+    // Firebase not configured (common for web during development).
+    // Continue in guest/local mode.
+    // ignore: avoid_print
+    print('Firebase.initializeApp() failed: $e\n$st');
+  }
   await BowlingRepository.instance.ensureLoaded();
   // start auto backup (immediate + daily)
   AutoBackupService.instance.start();
-  // start cloud sync (listens to auth changes)
-  CloudSyncService.instance.start();
+  // start cloud sync (listens to auth changes) only when Firebase is available
+  if (firebaseAvailable) {
+    CloudSyncService.instance.start();
+  }
   runApp(const AIBowlingMasterApp());
 }
 

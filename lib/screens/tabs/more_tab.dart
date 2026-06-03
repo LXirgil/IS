@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../data/bowling_repository.dart';
 import '../../services/bowling_coach.dart';
+import '../../services/cloud_sync_service.dart';
 import '../../services/share_service.dart';
 import '../alleys_map_screen.dart';
 import '../alleys_screen.dart';
@@ -73,6 +74,21 @@ class MoreTab extends StatelessWidget {
             onTap: () => ShareService.instance.shareBackupFile(),
           ),
           ListTile(
+            leading: const Icon(Icons.sync),
+            title: const Text('クラウド同期（手動）'),
+            subtitle: const Text('サインイン済みの場合、FireStoreと同期します'),
+            onTap: () async {
+              try {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('同期を開始します')));
+                await CloudSyncService.instance.manualSync();
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('同期が完了しました')));
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('同期に失敗しました: $e')));
+              }
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.file_download_outlined),
             title: const Text('バックアップを復元'),
             subtitle: const Text('JSONファイルを読み込み'),
@@ -120,6 +136,13 @@ class MoreTab extends StatelessWidget {
                 child: Text(report.summary),
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: const Text('AIコーチ（詳細）'),
+            subtitle: const Text('パーソナライズされたアドバイスとドリルを表示'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed('/ai_coach'),
           ),
           ...report.focusAreas.take(3).map(
                 (t) => ListTile(dense: true, leading: const Icon(Icons.flag_outlined, size: 20), title: Text(t)),

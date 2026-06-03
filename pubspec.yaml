@@ -48,6 +48,11 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^14.0.2
   http: ^1.4.0
+  # Firebase (authentication + cloud firestore for sync)
+  firebase_core: ^4.10.0
+  firebase_auth: ^6.5.2
+  cloud_firestore: ^6.5.0
+  js: ^0.7.2
 
 
 dev_dependencies:

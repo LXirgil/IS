@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'services/cloud_sync_service.dart';
+import 'services/auth_service.dart';
 
 import 'screens/app_shell.dart';
 import 'screens/flutter_map_page.dart';
+import 'screens/login_page.dart';
+import 'screens/ai_coach_page.dart';
 import 'data/bowling_repository.dart';
 import 'services/auto_backup.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   await BowlingRepository.instance.ensureLoaded();
   // start auto backup (immediate + daily)
   AutoBackupService.instance.start();
+  // start cloud sync (listens to auth changes)
+  CloudSyncService.instance.start();
   runApp(const AIBowlingMasterApp());
 }
 
@@ -39,9 +48,32 @@ class AIBowlingMasterApp extends StatelessWidget {
           labelTextStyle: WidgetStatePropertyAll(TextStyle(color: Color(0xFFF7EDE2))),
         ),
       ),
-      home: const AppShell(),
+      home: const AuthGate(),
       routes: {
         '/map': (context) => const FlutterMapPage(),
+        '/ai_coach': (context) => const AICoachPage(),
+      },
+    );
+  }
+}
+
+/// AuthGate shows login screen when user is not authenticated.
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        final user = snapshot.data;
+        if (user == null) {
+          return const LoginPage();
+        }
+        return const AppShell();
       },
     );
   }

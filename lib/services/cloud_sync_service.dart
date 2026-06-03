@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../data/bowling_repository.dart';
 import '../models/bowling.dart';
@@ -11,15 +12,27 @@ class CloudSyncService {
   CloudSyncService._private();
   static final CloudSyncService instance = CloudSyncService._private();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _db;
+
+  FirebaseAuth get _firebaseAuth {
+    if (!Firebase.apps.isNotEmpty) throw StateError('Firebase not initialized');
+    return _auth ??= FirebaseAuth.instance;
+  }
+
+  FirebaseFirestore get _firebaseFirestore {
+    if (!Firebase.apps.isNotEmpty) throw StateError('Firebase not initialized');
+    return _db ??= FirebaseFirestore.instance;
+  }
 
   StreamSubscription<User?>? _authSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _remoteSub;
 
   void start() {
+    // Only start if Firebase is initialized.
+    if (!Firebase.apps.isNotEmpty) return;
     // Listen to auth changes and start/stop sync accordingly
-    _authSub = _auth.authStateChanges().listen((user) async {
+    _authSub = _firebaseAuth.authStateChanges().listen((user) async {
       await _stopRemoteListener();
       if (user != null) {
         await _initialSyncForUser(user.uid);
@@ -34,7 +47,7 @@ class CloudSyncService {
   }
 
   Future<void> _initialSyncForUser(String uid) async {
-    final coll = _db.collection('users').doc(uid).collection('rounds');
+    final coll = _firebaseFirestore.collection('users').doc(uid).collection('rounds');
     try {
       final snap = await coll.get();
       final repo = BowlingRepository.instance;
@@ -63,7 +76,7 @@ class CloudSyncService {
   }
 
   void _startRemoteListener(String uid) {
-    final coll = _db.collection('users').doc(uid).collection('rounds');
+    final coll = _firebaseFirestore.collection('users').doc(uid).collection('rounds');
     _remoteSub = coll.snapshots().listen((snap) {
       final repo = BowlingRepository.instance;
       for (final change in snap.docChanges) {
@@ -85,10 +98,11 @@ class CloudSyncService {
 
   /// Manual sync: push local rounds and pull remote rounds once.
   Future<void> manualSync() async {
-    final user = _auth.currentUser;
+    if (!Firebase.apps.isNotEmpty) throw StateError('Firebase not initialized');
+    final user = _firebaseAuth.currentUser;
     if (user == null) throw StateError('Not signed in');
     final uid = user.uid;
-    final coll = _db.collection('users').doc(uid).collection('rounds');
+    final coll = _firebaseFirestore.collection('users').doc(uid).collection('rounds');
     final repo = BowlingRepository.instance;
     try {
       final snap = await coll.get();

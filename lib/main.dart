@@ -6,7 +6,6 @@ import 'services/auth_service.dart';
 
 import 'screens/app_shell.dart';
 import 'screens/flutter_map_page.dart';
-import 'screens/login_page.dart';
 import 'screens/ai_coach_page.dart';
 import 'data/bowling_repository.dart';
 import 'services/auto_backup.dart';
@@ -48,7 +47,7 @@ class AIBowlingMasterApp extends StatelessWidget {
           labelTextStyle: WidgetStatePropertyAll(TextStyle(color: Color(0xFFF7EDE2))),
         ),
       ),
-      home: const AuthGate(),
+      home: const AppShell(),
       routes: {
         '/map': (context) => const FlutterMapPage(),
         '/ai_coach': (context) => const AICoachPage(),
@@ -57,24 +56,4 @@ class AIBowlingMasterApp extends StatelessWidget {
   }
 }
 
-/// AuthGate shows login screen when user is not authenticated.
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        final user = snapshot.data;
-        if (user == null) {
-          return const LoginPage();
-        }
-        return const AppShell();
-      },
-    );
-  }
-}
+// Login flow removed: app starts directly at AppShell.

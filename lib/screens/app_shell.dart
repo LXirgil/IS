@@ -22,11 +22,17 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    // ignore: avoid_print
+    print('AppShell.initState: start loading repository');
     _load();
   }
 
   Future<void> _load() async {
+    // ignore: avoid_print
+    print('AppShell._load: ensuring repository loaded');
     await BowlingRepository.instance.ensureLoaded();
+    // ignore: avoid_print
+    print('AppShell._load: repository loaded');
     if (mounted) setState(() => _loading = false);
   }
 

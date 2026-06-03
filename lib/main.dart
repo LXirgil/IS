@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'services/cloud_sync_service.dart';
 import 'services/auth_service.dart';
 
@@ -12,14 +13,20 @@ import 'services/auto_backup.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var firebaseAvailable = false;
-  try {
-    await Firebase.initializeApp();
-    firebaseAvailable = true;
-  } catch (e, st) {
-    // Firebase not configured (common for web during development).
-    // Continue in guest/local mode.
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+      firebaseAvailable = true;
+    } catch (e, st) {
+      // Firebase not configured on native platform (?) — continue in guest/local mode.
+      // ignore: avoid_print
+      print('Firebase.initializeApp() failed: $e\n$st');
+    }
+  } else {
+    // Running on web: skip initialize here to avoid missing FirebaseOptions causing app crash.
+    // If you have generated `DefaultFirebaseOptions` for web, replace this logic to initialize.
     // ignore: avoid_print
-    print('Firebase.initializeApp() failed: $e\n$st');
+    print('kIsWeb true — skipping Firebase.initializeApp() (no web config)');
   }
   await BowlingRepository.instance.ensureLoaded();
   // start auto backup (immediate + daily)

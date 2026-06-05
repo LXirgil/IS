@@ -48,6 +48,8 @@ class BowlingRepository {
         leagues = [];
       }
     }
+    // ignore: avoid_print
+    print('BowlingRepository: loaded ${rounds.length} rounds, ${balls.length} balls, ${alleys.length} alleys, ${leagues.length} leagues');
     _loaded = true;
   }
 
@@ -61,6 +63,8 @@ class BowlingRepository {
       'savedAt': DateTime.now().toIso8601String(),
     });
     await prefs.setString(_storageKey, payload);
+    // ignore: avoid_print
+    print('BowlingRepository: saved payload ${payload.length} bytes, rounds=${rounds.length}');
   }
 
   String exportJson() => jsonEncode({
@@ -116,14 +120,14 @@ class BowlingRepository {
     await save();
   }
 
-  void upsertRound(RoundData round) {
+  Future<void> upsertRound(RoundData round) async {
     final i = rounds.indexWhere((r) => r.id == round.id);
     if (i >= 0) {
       rounds[i] = round;
     } else {
       rounds.insert(0, round);
     }
-    save();
+    await save();
   }
 
   void deleteRound(String id) {

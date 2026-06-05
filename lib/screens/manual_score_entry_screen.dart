@@ -62,7 +62,7 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
     });
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_round.hasScoreData) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('1投以上入力してください')));
       return;
@@ -72,8 +72,10 @@ class _ManualScoreEntryScreenState extends State<ManualScoreEntryScreen> {
     _round.note = _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
     _round.source = 'manual';
     // persist to repository
-    BowlingRepository.instance.upsertRound(_round);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('スコアを保存しました')));
+    final messenger = ScaffoldMessenger.of(context);
+    await BowlingRepository.instance.upsertRound(_round);
+    if (!mounted) return;
+    messenger.showSnackBar(const SnackBar(content: Text('スコアを保存しました')));
     Navigator.of(context).pop(_round);
   }
 

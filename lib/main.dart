@@ -29,8 +29,10 @@ Future<void> main() async {
     print('kIsWeb true — skipping Firebase.initializeApp() (no web config)');
   }
   await BowlingRepository.instance.ensureLoaded();
-  // start auto backup (immediate + daily)
-  AutoBackupService.instance.start();
+  // start auto backup (immediate + daily) only on native platforms
+  if (!kIsWeb) {
+    AutoBackupService.instance.start();
+  }
   // start cloud sync (listens to auth changes) only when Firebase is available
   if (firebaseAvailable) {
     CloudSyncService.instance.start();

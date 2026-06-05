@@ -18,7 +18,7 @@ class GamesTab extends StatelessWidget {
       MaterialPageRoute(builder: (_) => const ManualScoreEntryScreen()),
     );
     if (result != null) {
-      BowlingRepository.instance.upsertRound(result);
+      await BowlingRepository.instance.upsertRound(result);
       onRefresh();
     }
   }
@@ -29,7 +29,7 @@ class GamesTab extends StatelessWidget {
     );
     if (result != null) {
       result.source = 'scan';
-      BowlingRepository.instance.upsertRound(result);
+      await BowlingRepository.instance.upsertRound(result);
       onRefresh();
     }
   }

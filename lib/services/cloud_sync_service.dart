@@ -57,7 +57,7 @@ class CloudSyncService {
         final data = doc.data();
         try {
           final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
-          repo.upsertRound(r);
+          await repo.upsertRound(r);
           remoteIds.add(r.id);
         } catch (_) {
           // ignore individual parse errors
@@ -77,13 +77,13 @@ class CloudSyncService {
 
   void _startRemoteListener(String uid) {
     final coll = _firebaseFirestore.collection('users').doc(uid).collection('rounds');
-    _remoteSub = coll.snapshots().listen((snap) {
+    _remoteSub = coll.snapshots().listen((snap) async {
       final repo = BowlingRepository.instance;
       for (final change in snap.docChanges) {
         final data = change.doc.data();
         try {
           final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
-          repo.upsertRound(r);
+          await repo.upsertRound(r);
         } catch (_) {
           // ignore
         }
@@ -111,7 +111,7 @@ class CloudSyncService {
         final data = doc.data();
         try {
           final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
-          repo.upsertRound(r);
+          await repo.upsertRound(r);
           remoteIds.add(r.id);
         } catch (_) {}
       }

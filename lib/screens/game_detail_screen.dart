@@ -79,7 +79,7 @@ class GameDetailScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => ManualScoreEntryScreen(existing: round)),
                     );
                     if (r != null) {
-                      repo.upsertRound(r);
+                      await repo.upsertRound(r);
                       onChanged();
                     }
                   },
@@ -96,7 +96,7 @@ class GameDetailScreen extends StatelessWidget {
                     );
                     if (r != null) {
                       r.source = 'scan';
-                      repo.upsertRound(r);
+                      await repo.upsertRound(r);
                       onChanged();
                     }
                   },

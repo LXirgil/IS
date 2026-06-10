@@ -62,9 +62,22 @@ class BowlingRepository {
       'leagues': leagues.map((l) => l.toJson()).toList(),
       'savedAt': DateTime.now().toIso8601String(),
     });
-    await prefs.setString(_storageKey, payload);
-    // ignore: avoid_print
-    print('BowlingRepository: saved payload ${payload.length} bytes, rounds=${rounds.length}');
+    try {
+      final ok = await prefs.setString(_storageKey, payload);
+      // ignore: avoid_print
+      print('BowlingRepository: setString returned $ok');
+      final verify = prefs.getString(_storageKey);
+      if (verify == null) {
+        // ignore: avoid_print
+        print('BowlingRepository: verify read returned null');
+      } else {
+        // ignore: avoid_print
+        print('BowlingRepository: saved payload ${verify.length} bytes, rounds=${rounds.length}');
+      }
+    } catch (e, st) {
+      // ignore: avoid_print
+      print('BowlingRepository: save failed: $e\n$st');
+    }
   }
 
   String exportJson() => jsonEncode({

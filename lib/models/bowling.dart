@@ -61,6 +61,7 @@ class FrameData {
 class RoundData {
   final String id;
   final DateTime date;
+  int? laneNumber;
   final List<FrameData> frames;
   String? scoreSheetImagePath;
   String? ocrRawText;
@@ -76,6 +77,7 @@ class RoundData {
     required this.id,
     DateTime? date,
     List<FrameData>? frames,
+    this.laneNumber,
     this.scoreSheetImagePath,
     this.ocrRawText,
     this.scanConfidence,
@@ -111,7 +113,8 @@ class RoundData {
   Map<String, dynamic> toJson() => {
         'id': id,
         'date': date.toIso8601String(),
-        'frames': frames.map((f) => f.toJson()).toList(),
+      'frames': frames.map((f) => f.toJson()).toList(),
+      'laneNumber': laneNumber,
         'scoreSheetImagePath': scoreSheetImagePath,
         'ocrRawText': ocrRawText,
         'scanConfidence': scanConfidence,
@@ -125,11 +128,12 @@ class RoundData {
   factory RoundData.fromJson(Map<String, dynamic> j) => RoundData(
         id: j['id'] as String,
         date: DateTime.parse(j['date'] as String),
-        frames: (j['frames'] as List<dynamic>?)
+      frames: (j['frames'] as List<dynamic>?)
                 ?.map((e) => FrameData.fromJson(Map<String, dynamic>.from(e)))
                 .toList() ??
             List.generate(10, (i) => FrameData(frameNumber: i + 1)),
-        scoreSheetImagePath: j['scoreSheetImagePath'] as String?,
+      laneNumber: j['laneNumber'] as int?,
+      scoreSheetImagePath: j['scoreSheetImagePath'] as String?,
         ocrRawText: j['ocrRawText'] as String?,
         scanConfidence: (j['scanConfidence'] as num?)?.toDouble(),
         ballId: j['ballId'] as String?,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -143,66 +144,120 @@ class BowlingRepository {
     await save();
   }
 
-  void deleteRound(String id) {
+  Future<void> deleteRound(String id) async {
     rounds.removeWhere((r) => r.id == id);
     for (final l in leagues) {
       l.roundIds.remove(id);
     }
-    save();
+    await save();
   }
 
-  void upsertBall(BowlingBall ball) {
+  Future<void> upsertBall(BowlingBall ball) async {
     final i = balls.indexWhere((b) => b.id == ball.id);
     if (i >= 0) {
       balls[i] = ball;
     } else {
       balls.add(ball);
     }
-    save();
+    await save();
   }
 
-  void deleteBall(String id) {
+  Future<void> deleteBall(String id) async {
     balls.removeWhere((b) => b.id == id);
     for (final r in rounds) {
       if (r.ballId == id) r.ballId = null;
     }
-    save();
+    await save();
   }
 
-  void upsertAlley(BowlingAlley alley) {
+  Future<void> upsertAlley(BowlingAlley alley) async {
     final i = alleys.indexWhere((a) => a.id == alley.id);
     if (i >= 0) {
       alleys[i] = alley;
     } else {
       alleys.add(alley);
     }
-    save();
+    await save();
   }
 
-  void deleteAlley(String id) {
+  Future<void> deleteAlley(String id) async {
     alleys.removeWhere((a) => a.id == id);
     for (final r in rounds) {
       if (r.alleyId == id) r.alleyId = null;
     }
-    save();
+    await save();
   }
 
-  void upsertLeague(BowlingLeague league) {
+  Future<void> upsertLeague(BowlingLeague league) async {
     final i = leagues.indexWhere((l) => l.id == league.id);
     if (i >= 0) {
       leagues[i] = league;
     } else {
       leagues.add(league);
     }
-    save();
+    await save();
   }
 
-  void deleteLeague(String id) {
+  Future<void> deleteLeague(String id) async {
     leagues.removeWhere((l) => l.id == id);
     for (final r in rounds) {
       if (r.leagueId == id) r.leagueId = null;
     }
-    save();
+    await save();
+  }
+
+  /// アレイ（alleyId）ごとのレーン別ピン残りカウントを返す
+  /// 戻り値: { laneNumber: { pinNumber: count, ... }, ... }
+  Map<int, Map<int, int>> pinLeaveCountsByAlley(String alleyId) {
+    final result = <int, Map<int, int>>{};
+    for (final r in rounds) {
+      if (r.alleyId != alleyId) continue;
+      final lane = r.laneNumber;
+      if (lane == null) continue;
+      final laneMap = result.putIfAbsent(lane, () => <int, int>{});
+      for (final f in r.frames) {
+        for (final t in f.throws) {
+          for (final pin in t.pinsLeft) {
+            laneMap[pin] = (laneMap[pin] ?? 0) + 1;
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /// 指定アレイとレーン番号のピン残りカウントを返す（デフォルトは0埋め）
+  Map<int, int> pinLeaveCountsForAlleyLane(String alleyId, int laneNumber) {
+    final byLane = pinLeaveCountsByAlley(alleyId);
+    final map = byLane[laneNumber];
+    if (map != null) return map;
+    final empty = <int, int>{};
+    for (var p = 1; p <= 10; p++) empty[p] = 0;
+    return empty;
+  }
+
+  /// テスト用: 指定アレイにランダムなサンプルラウンドを追加して保存する
+  Future<void> generateSampleDataForAlley(String alleyId, {int lanes = 6, int roundsPerLane = 10}) async {
+    final rnd = Random();
+    // ensure alley exists
+    if (!alleys.any((a) => a.id == alleyId)) {
+      alleys.add(BowlingAlley(id: alleyId, name: 'Sample Alley'));
+    }
+
+    for (var l = 1; l <= lanes; l++) {
+      for (var i = 0; i < roundsPerLane; i++) {
+        final r = RoundData(
+          id: 'sample-${DateTime.now().microsecondsSinceEpoch}-$l-$i',
+          date: DateTime.now().subtract(Duration(days: rnd.nextInt(60))),
+          laneNumber: l,
+          alleyId: alleyId,
+          source: 'sample',
+        );
+        fillRoundRandom(r, rnd);
+        rounds.insert(0, r);
+      }
+    }
+    await save();
   }
 
   BowlingBall? ballById(String? id) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'services/cloud_sync_service.dart';
-import 'services/auth_service.dart';
 
 import 'screens/app_shell.dart';
 import 'screens/flutter_map_page.dart';

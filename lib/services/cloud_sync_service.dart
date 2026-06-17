@@ -12,6 +12,12 @@ class CloudSyncService {
   CloudSyncService._private();
   static final CloudSyncService instance = CloudSyncService._private();
 
+  Map<String, dynamic> _ensureMap(Object? data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return <String, dynamic>{};
+  }
+
   FirebaseAuth? _auth;
   FirebaseFirestore? _db;
 
@@ -56,7 +62,7 @@ class CloudSyncService {
       for (final doc in snap.docs) {
         final data = doc.data();
         try {
-          final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
+          final r = RoundData.fromJson(_ensureMap(data));
           await repo.upsertRound(r);
           remoteIds.add(r.id);
         } catch (_) {
@@ -82,7 +88,7 @@ class CloudSyncService {
       for (final change in snap.docChanges) {
         final data = change.doc.data();
         try {
-          final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
+          final r = RoundData.fromJson(_ensureMap(data));
           await repo.upsertRound(r);
         } catch (_) {
           // ignore
@@ -110,7 +116,7 @@ class CloudSyncService {
       for (final doc in snap.docs) {
         final data = doc.data();
         try {
-          final r = RoundData.fromJson(Map<String, dynamic>.from(data as Map<String, dynamic>));
+          final r = RoundData.fromJson(_ensureMap(data));
           await repo.upsertRound(r);
           remoteIds.add(r.id);
         } catch (_) {}

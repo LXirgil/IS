@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:math' as math;
 
 import '../../data/bowling_repository.dart';
 import '../../models/bowling.dart';
 import '../../models/bowling_meta.dart';
 import '../../services/bowling_coach.dart';
 import '../../services/game_filter_service.dart';
+import '../../widgets/lane_heatmap.dart';
 
 class DashboardTab extends StatelessWidget {
   const DashboardTab({super.key, required this.onRefresh, required this.onGoGames});
@@ -19,7 +21,6 @@ class DashboardTab extends StatelessWidget {
     final repo = BowlingRepository.instance;
     final rounds = GameFilterService.instance.apply(repo.rounds, GameSearchFilter(period: StatsPeriod.last30Days));
     final scheme = Theme.of(context).colorScheme;
-    final fmt = DateFormat('M/d');
 
     return Scaffold(
       appBar: AppBar(title: const Text('ホーム'), centerTitle: false),
@@ -36,50 +37,80 @@ class DashboardTab extends StatelessWidget {
                     Text('直近30日の推移', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     SizedBox(
-                      height: 160,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 32)),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (v, m) {
-                                  final i = v.toInt();
-                                  if (i < 0 || i >= rounds.length) return const SizedBox.shrink();
-                                  return Text(fmt.format(rounds[rounds.length - 1 - i].date), style: const TextStyle(fontSize: 9));
-                                },
-                              ),
-                            ),
-                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      height: 180,
+                      child: Builder(builder: (context) {
+                        // sort rounds chronologically (oldest -> newest)
+                        final chrono = List<RoundData>.from(rounds)..sort((a, b) => a.date.compareTo(b.date));
+                        final spots = List<FlSpot>.generate(
+                          chrono.length,
+                          (i) => FlSpot(
+                            i.toDouble(),
+                            (BowlingStats.roundTotal(chrono[i]) ?? BowlingScoring.rawPinTotal(chrono[i])).toDouble(),
                           ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: List.generate(
-                                rounds.length,
-                                (i) => FlSpot(
-                                  i.toDouble(),
-                                  (BowlingStats.roundTotal(rounds[rounds.length - 1 - i]) ?? 0).toDouble(),
+                        );
+                        if (spots.isEmpty) return const SizedBox.shrink();
+                        final ys = spots.map((s) => s.y).toList();
+                        final minY = math.max(0, ys.reduce(math.min) - 10).toDouble();
+                        final maxY = (ys.reduce(math.max) + 10).toDouble();
+                        final interval = math.max(1, (chrono.length / 6).ceil());
+                        return LineChart(
+                          LineChartData(
+                            lineTouchData: LineTouchData(
+                              enabled: true,
+                              touchTooltipData: LineTouchTooltipData(
+                                getTooltipItems: (items) {
+                                  return items.map((it) {
+                                    final idx = it.x.toInt();
+                                    final date = chrono[idx].date;
+                                    final score = it.y.toInt();
+                                    return LineTooltipItem('${DateFormat('M/d').format(date)}\n$score', const TextStyle(color: Colors.white));
+                                  }).toList();
+                                },
+                                ),
+                            ),
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 36)),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  interval: interval.toDouble(),
+                                  getTitlesWidget: (v, meta) {
+                                    final i = v.toInt();
+                                    if (i < 0 || i >= chrono.length) return const SizedBox.shrink();
+                                    return Text(DateFormat('M/d').format(chrono[i].date), style: const TextStyle(fontSize: 10));
+                                  },
                                 ),
                               ),
-                              isCurved: true,
-                              color: scheme.primary,
-                              barWidth: 3,
-                              dotData: const FlDotData(show: true),
+                              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                             ),
-                          ],
-                          minY: 0,
-                        ),
-                      ),
+                            borderData: FlBorderData(show: false),
+                            minY: minY,
+                            maxY: maxY,
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: spots,
+                                isCurved: true,
+                                color: scheme.primary,
+                                barWidth: 3,
+                                dotData: FlDotData(show: true),
+                                belowBarData: BarAreaData(show: true, color: scheme.primary.withOpacity(0.15)),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     ),
                     const SizedBox(height: 20),
                   ],
                   Text('クイック分析', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   _QuickInsightCard(rounds: rounds),
+                  const SizedBox(height: 12),
+                  // Lane heatmap summary
+                  const SizedBox(height: 8),
+                  _LaneHeatmapCard(rounds: rounds, repo: repo, onRefresh: onRefresh),
                   const SizedBox(height: 12),
                   Text('最近のゲーム', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
@@ -234,6 +265,89 @@ class _RecentGameTile extends StatelessWidget {
         title: Text(DateFormat('yyyy/M/d HH:mm').format(round.date)),
         subtitle: Text([if (alley != null) alley.name, if (round.source == 'scan') '写真'].whereType<String>().join(' · ')),
         trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
+
+class _LaneHeatmapCard extends StatelessWidget {
+  const _LaneHeatmapCard({required this.rounds, required this.repo, required this.onRefresh});
+
+  final List<RoundData> rounds;
+  final BowlingRepository repo;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    // find most frequent alleyId in rounds
+    final counts = <String, int>{};
+    for (final r in rounds) {
+      if (r.alleyId == null) continue;
+      counts[r.alleyId!] = (counts[r.alleyId!] ?? 0) + 1;
+    }
+    if (counts.isEmpty) {
+      // no alley data in this period — show a sample generation CTA
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('レーン別ヒートマップ', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('直近の期間にアレイ情報がありません。サンプルデータを生成して表示を確認できます。', style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    const sampleAlleyId = 'sample-alley-1';
+                    await repo.generateSampleDataForAlley(sampleAlleyId, lanes: 6, roundsPerLane: 8);
+                    onRefresh();
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('サンプル生成'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final topAlleyId = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final alleyId = topAlleyId.first.key;
+    final alley = repo.alleyById(alleyId);
+    final data = repo.pinLeaveCountsByAlley(alleyId);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('レーン別ヒートマップ', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                if (alley != null) Text(alley.name, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () async {
+                  await repo.generateSampleDataForAlley(alleyId, lanes: 6, roundsPerLane: 8);
+                  onRefresh();
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('サンプル生成'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            LaneHeatmap(data: data),
+          ],
+        ),
       ),
     );
   }

@@ -1,0 +1,158 @@
+[
+  {
+    "title": "AI Bowling Master",
+    "subtitle": "ボウリング場に馴染むウッド調デザインで、レーン特性×AIで個人最適化を提供。",
+    "bullets": [
+      "製品名とキャッチ: あなたのレーンを勝利に導くAI",
+      "対象: 個人/リーグ/ボウリング場",
+      "本日の流れ：入力→解析→ヒートマップ→AI",
+      "実装状況の概略を提示",
+      "協業の呼びかけ"
+    ],
+    "speaker_notes": "製品の一言説明とデモの流れを告げる。木目調のトーンで会場の雰囲気に合わせる旨を一言。",
+    "image": "assets/images/title_banner.png"
+  },
+  {
+    "title": "課題",
+    "subtitle": "レーン差やデータ不足で改善に時間がかかる。コーチングは高コストで普及しにくい。",
+    "bullets": [
+      "レーン特性でスコアが安定しない",
+      "個人の弱点が見えづらい",
+      "効果的な練習計画が組めない",
+      "ボウリング場は顧客データを活かしにくい",
+      "低コストで解決する余地あり"
+    ],
+    "speaker_notes": "現場の実例を簡潔に紹介し、データの必要性を強調。",
+    "image": "assets/images/problem_slide.png"
+  },
+  {
+    "title": "解決策（概要）",
+    "subtitle": "手入力／写真スキャンでデータを取得し、解析→ヒートマップ→AI提案で改善を促進。",
+    "bullets": [
+      "入力の多様性（手/写真）",
+      "ローカル永続化＋任意クラウド同期",
+      "レーン別可視化で現地特性を提示",
+      "AIの短尺レッスンで継続支援",
+      "Flutter採用で低コスト展開可能"
+    ],
+    "speaker_notes": "ワークフロー図を指示して各ステップの価値を説明。",
+    "image": "assets/images/product_flow.png"
+  },
+  {
+    "title": "コア機能：スコア入力 & 解析",
+    "subtitle": "物理キー対応の手入力、OCR スキャン、スコア計算ロジックを備えた信頼できるデータ基盤。",
+    "bullets": [
+      "手入力画面はボタン＋物理キー（Enterで保存）",
+      "OCR→Frame変換（bowling_mark_parser）",
+      "スコアロジック（BowlingScoring）",
+      "入力ログで操作追跡",
+      "unit テストで精度担保"
+    ],
+    "speaker_notes": "実装ファイルを示して信頼性をアピール。物理キーのデモを推奨。",
+    "image": "assets/images/manual_entry_keys.png"
+  },
+  {
+    "title": "コア機能：レーン別ヒートマップ",
+    "subtitle": "レーンごとの残ピン頻度をヒートマップとして可視化。",
+    "bullets": [
+      "集計は BowlingRepository.pinLeaveCountsByAlley",
+      "ダッシュボードカードで即確認",
+      "LaneHeatmap ウィジェット実装済み",
+      "サンプル生成で即検証可",
+      "将来的に自動攻略提案へ連携"
+    ],
+    "speaker_notes": "色の濃淡が残ピン率を示す点を説明。サンプル生成で即表示される様子をデモ。",
+    "image": "assets/images/dashboard_heatmap.png"
+  },
+  {
+    "title": "コア機能：AIコーチ",
+    "subtitle": "投球データとヒートマップを元に短いテキストで改善策を提示。",
+    "bullets": [
+      "ai_service + bowling_coach による提案",
+      "30秒程度のマイクロレッスン",
+      "テキスト表示、将来的に音声",
+      "ユーザー行動で提案の効果検証",
+      "動画解析は次フェーズ"
+    ],
+    "speaker_notes": "AI出力の例を読み上げ、ユーザーが即実行できる簡単さを強調。",
+    "image": "assets/images/ai_coach_page.png"
+  },
+  {
+    "title": "技術スタック & アーキテクチャ",
+    "subtitle": "Flutter UI、ローカル永続化、Firestore 同期オプション、AI は外部/内部ラッパーで実装。",
+    "bullets": [
+      "フロントは Flutter（Android/iOS/web/desktop）",
+      "BowlingRepository によるローカル保存",
+      "CloudSyncService による Firestore 同期（堅牢化済）",
+      "AI は ai_service（Gemini 等想定）",
+      "unit テストで解析を検証済み"
+    ],
+    "speaker_notes": "拡張しやすい設計で外部BIと連携可能な点を説明。",
+    "image": "assets/images/arch_diagram.png"
+  },
+  {
+    "title": "実装済みの進捗（現状）",
+    "subtitle": "主要機能のコア実装完了。ローカルでのフローが動作しデモ可能。",
+    "bullets": [
+      "スコア入力（物理キー・ログ・Enter保存）",
+      "レーン別集計とヒートマップ",
+      "AIコーチ基盤",
+      "サンプルデータ生成機能",
+      "基本的な単体テスト実行済み"
+    ],
+    "speaker_notes": "代表的なファイル名を挙げて技術的信頼を示す。",
+    "image": "assets/images/implementation_overview.png"
+  },
+  {
+    "title": "デモ（画面キャプチャ集）",
+    "subtitle": "ダッシュボード→ヒートマップ→スコア入力→AI提案の順で実演。",
+    "bullets": [
+      "ダッシュボードと推移グラフ",
+      "ヒートマップカードと拡大",
+      "スコア入力（キーボードログ表示）",
+      "サンプル生成で瞬時にデータ充填",
+      "AI提案の表示例"
+    ],
+    "speaker_notes": "エミュレータでライブ操作を推奨。重要箇所をポインタで示しながら解説。",
+    "image": "assets/images/dashboard_full.png"
+  },
+  {
+    "title": "KPI・想定指標",
+    "subtitle": "継続率、ヒートマップ利用率、AI提案採用率などで価値を測定。",
+    "bullets": [
+      "MAU / D30 継続率",
+      "スコア登録セッション数",
+      "ヒートマップ表示率",
+      "AI提案採用率",
+      "パートナー導入件数と収益貢献"
+    ],
+    "speaker_notes": "初期目標とデータ改善のフィードバックループを説明。",
+    "image": "assets/images/kpi_chart.png"
+  },
+  {
+    "title": "ロードマップ",
+    "subtitle": "0–3ヶ月のユーザーテストから12ヶ月の商用展開までの段階的計画。",
+    "bullets": [
+      "0–3ヶ月: ユーザーテスト＆UI改善",
+      "3–6ヶ月: AI改善・動画解析PoC",
+      "6–9ヶ月: 有料機能試験",
+      "9–12ヶ月: パートナー連携と商用化",
+      "リスク対策（データ品質、API依存）"
+    ],
+    "speaker_notes": "マイルストーンの優先度と必要リソースを示す。",
+    "image": "assets/images/roadmap_timeline.png"
+  },
+  {
+    "title": "要望 / 次のアクション",
+    "subtitle": "投資・現場協業・技術協力の3点を募集。PoC日程の即時調整を提案。",
+    "bullets": [
+      "初期投資用途（UX改善・AIコスト）",
+      "テストレーン提供のお願い",
+      "技術連携（動画解析等）",
+      "3ヶ月でのPoC開始提案",
+      "連絡先とフォローアップ方法"
+    ],
+    "speaker_notes": "必要金額のレンジや協業形態の例を簡潔に示し、次回ミーティングを設定する提案で締める。",
+    "image": "assets/images/ask_slide.png"
+  }
+]

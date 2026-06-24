@@ -1,0 +1,16 @@
+{
+  "title": "AI Bowling Master - 企画書",
+  "executive_summary": "AI Bowling Master は、ボウリング場とプレイヤー双方に価値を提供するモバイル/デスクトップアプリケーションです。レーンごとの残ピン分布を可視化するヒートマップと、投球データに基づくAIコーチ機能を組み合わせ、短時間で効果的な改善アドバイスを提供します。導入により、ボウリング場は来店者満足度とリピート率を向上でき、プレイヤーは効率的にスキルを伸ばせます。",
+  "problem": "現状の問題点は以下です。\n\n1) レーンやピンの挙動は場所やレーンメンテナンスにより大きく変動するため、一般のプレイヤーは自分の弱点を特定できない。\n2) コーチングはコストが高く、日常的な改善には適さない。\n3) ボウリング場は顧客のプレイデータを十分に活用できていない。",
+  "solution": "本プロダクトは、手入力／OCRによりスコアと投球履歴を取り込み、\n\n- レーン別ヒートマップで残ピンの分布を可視化、\n- AIコーチが即時に改善アドバイス（ショートテキスト/音声）を提供、\n- ローカル保存と任意のクラウド同期で現場導入を容易にします。",
+  "features": "・スコア入力（ボタン／物理キーボード対応、Enterで保存）\n\n・レーン別残ピンヒートマップ（`LaneHeatmap` ウィジェット）\n\n・AIコーチ（短いアクション提案、改善トラック）\n\n・サンプルデータ生成とダッシュボード表示\n\n・Firestore への同期オプション（CloudSyncService）",
+  "technical_spec": "・フロントエンド: Flutter（Android/iOS/Web/Desktop 対応）\n\n・データ層: `BowlingRepository`（ローカル永続化 + optional Firestore 同期）\n\n・解析: `BowlingScoring`, `bowling_mark_parser`（既存ユニットテストあり）\n\n・AI: `ai_service` を介して外部API (例: Gemini) またはオンプレ推論で提案生成",
+  "implementation_plan": "フェーズ1: コア機能完成・ユーザーテスト（0-3ヶ月）\n\nフェーズ2: AI改善と動画解析 PoC（3-6ヶ月）\n\nフェーズ3: 商用機能（有料分析・場別カスタマイズ）(6-12ヶ月)",
+  "timeline": "0-3ヶ月: ユーザーテスト、UI改善、KPI設計\n\n3-6ヶ月: AI提案精度向上、動画解析 PoC、パートナー募集\n\n6-12ヶ月: 商用導入、B2B提携、収益化テスト",
+  "business_model": "・B2C: アプリ内課金（プレミアムレポート、AIアドバイス定額）\n\n・B2B: ボウリング場向けライセンス（データ解析レポート、カスタムダッシュボード）\n\n・導入支援/運用サポートの提供",
+  "budget": "初期開発（MVP）概算: 800万円〜1200万円（人件費、AI API費用、インフラ）\n\n運用コスト（月）: 20万〜50万円（API利用料・サーバー・保守）",
+  "metrics": "・MAU / 継続率 (D30)\n\n・スコア登録セッション数\n\n・ヒートマップ表示率\n\n・AI提案採用率\n\n・パートナー導入数",
+  "team": "必要な体制（初期）:\n\n・プロダクトマネージャー 1名\n・Flutterエンジニア 1-2名\n・バックエンド / データエンジニア 1名\n・データサイエンティスト / MLエンジニア 1名\n・QA / テスター 1名",
+  "ask": "・PoC用のテストレーン提供（地域のボウリング場）\n\n・初期開発資金の検討（概算レンジの合意）\n\n・技術連携パートナー（動画解析、音声合成）",
+  "appendix": "付録: 主なファイルと所在\n\n- UI: lib/screens/manual_score_entry_screen.dart, lib/widgets/lane_heatmap.dart\n- データ: lib/data/bowling_repository.dart, lib/models/bowling.dart\n- AI: lib/services/ai_service.dart, lib/services/bowling_coach.dart\n\n（必要なら詳細な技術仕様書やサンプルデータを別紙で提供します。）"
+}
